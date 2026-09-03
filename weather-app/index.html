@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>대한민국 도시 날씨</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>대한민국 주요 도시 날씨</h1>
+      <p class="subtitle">지도에서 도시를 클릭하면 상세 날씨와 날씨 챗봇을 확인할 수 있어요</p>
+    </header>
+
+    <div class="main">
+      <div id="map"></div>
+
+      <aside id="panel" class="panel panel-empty">
+        <div class="panel-placeholder">
+          <div class="placeholder-icon">🗺️</div>
+          <p>지도에서 도시 마커를 클릭해 보세요</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="cities.js"></script>
+  <script src="weather.js"></script>
+  <script src="chat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

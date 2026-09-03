@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rag-lab</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="band-brand">
+    <div class="bar">
+      <div class="brand">rag-lab</div>
+      <nav id="nav">
+        <button class="tab on" data-pane="p1"><b>①</b> PDF 업로드<span>파싱</span></button>
+        <button class="tab" data-pane="p2"><b>②</b> 청킹<span>자르기</span></button>
+        <button class="tab" data-pane="p3"><b>③</b> 임베딩<span>숫자로 · 적재</span></button>
+        <button class="tab" data-pane="p4"><b>④</b> 검색<span>꺼내기</span></button>
+      </nav>
+    </div>
+  </div>
+  <div class="band-status">
+    <div class="status" id="status">
+      <span class="chip"><i>문서</i><b id="st-doc">—</b></span>
+      <span class="chip"><i>쪽 · 글자</i><b id="st-size">—</b></span>
+      <span class="chip"><i>청크</i><b id="st-chunks">—</b></span>
+      <span class="chip on"><i>적재된 청크</i><b id="st-store">0</b></span>
+      <span class="chip"><i>임베딩 모델</i><b id="st-model">—</b></span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ① PDF 업로드 ------------------------------------------------- -->
+<section id="p1" class="pane on">
+  <h2>PDF 업로드 <span class="sub">— 파일에서 글자를 뽑아냅니다. 이 단계를 파싱이라고 합니다.</span></h2>
+
+  <ol class="substeps">
+    <li>PDF 를 고른다</li>
+    <li>글자를 뽑아낸다</li>
+    <li>페이지마다 얼마나 뽑혔는지 확인한다</li>
+  </ol>
+
+  <div class="row">
+    <input type="file" id="file" accept="application/pdf">
+    <button id="btn-upload" class="primary">업로드</button>
+    <span id="upload-msg" class="msg"></span>
+  </div>
+
+  <div id="doc-summary" class="cards hidden"></div>
+
+  <div id="doc-view" class="hidden">
+    <p class="hint">막대 하나가 한 페이지입니다. 높이는 뽑아낸 글자 수이고, 붉은 칸은 글자가 거의
+      나오지 않은 페이지입니다. 원본 PDF 의 그 쪽을 열어 무엇이 있었는지 확인해 보세요.</p>
+    <div id="page-bars" class="bars"></div>
+    <div class="row tight">
+      <button id="page-prev">◀</button>
+      <span id="page-label">1 / 1</span>
+      <button id="page-next">▶</button>
+      <span id="page-chars" class="hint"></span>
+    </div>
+    <pre id="doc-text" class="doc"></pre>
+  </div>
+</section>
+
+<!-- ② 청킹 ------------------------------------------------------- -->
+<section id="p2" class="pane">
+  <h2>청킹 <span class="sub">— 뽑아낸 글을 조각으로 자릅니다. 자르는 기준이 세 가지입니다.</span></h2>
+
+  <ol class="substeps">
+    <li>자르는 기준을 고른다</li>
+    <li>미리보기로 조각을 확인한다</li>
+    <li>조각 하나를 눌러 전문을 읽는다</li>
+  </ol>
+
+  <div id="p2-need" class="need hidden">먼저 ① 에서 PDF 를 올려 주세요.</div>
+
+  <div class="row">
+    <label><input type="radio" name="strategy" value="fixed" checked> 고정 길이</label>
+    <label><input type="radio" name="strategy" value="structure"> 구조 경계</label>
+    <label><input type="radio" name="strategy" value="paragraph"> 문단</label>
+    <span class="sep"></span>
+    <label>길이 <input type="number" id="size" value="500" min="100" max="2000" step="50"></label>
+    <button id="btn-chunk" class="primary">미리보기</button>
+    <span id="chunk-msg" class="msg"></span>
+  </div>
+
+  <div id="chunk-summary" class="cards hidden"></div>
+  <div id="chunk-list" class="chunks"></div>
+</section>
+
+<!-- ③ 임베딩 ----------------------------------------------------- -->
+<section id="p3" class="pane">
+  <h2>임베딩 <span class="sub">— 조각을 숫자 배열로 바꿔 저장합니다.</span></h2>
+
+  <ol class="substeps">
+    <li>조각을 임베딩 모델로 보낸다</li>
+    <li>돌아온 숫자 배열을 저장소에 넣는다</li>
+    <li>조각 하나의 숫자를 열어 본다</li>
+  </ol>
+
+  <div id="p3-need" class="need hidden">먼저 ② 에서 청킹을 실행해 주세요.</div>
+
+  <div class="row">
+    <button id="btn-embed" class="primary">적재</button>
+    <button id="btn-reset">저장소 비우기</button>
+    <span id="embed-msg" class="msg"></span>
+  </div>
+
+  <div id="store-summary" class="cards"></div>
+  <div id="store-docs" class="table-wrap"></div>
+
+  <div class="row tight" style="margin-top:14px">
+    <label>청크 번호 <input type="number" id="peek-idx" value="0" min="0"></label>
+    <button id="btn-peek">숫자 배열 보기</button>
+    <span id="peek-msg" class="msg"></span>
+  </div>
+  <div id="peek-out" class="vec hidden"></div>
+</section>
+
+<!-- ④ 검색 ------------------------------------------------------- -->
+<section id="p4" class="pane">
+  <h2>검색 <span class="sub">— 질문도 같은 방식으로 숫자 배열이 됩니다. 가까운 조각부터 꺼냅니다.</span></h2>
+
+  <ol class="substeps">
+    <li>필요하면 질의를 검색에 맞게 다시 쓴다</li>
+    <li>질문을 숫자 배열로 바꾼다</li>
+    <li>의미 · BM25 · 하이브리드(RRF) 를 나란히 돌린다 — 재정렬을 켜면 하이브리드 후보만</li>
+    <li>재정렬을 켰으면 후보를 LLM 이 다시 순서 매긴다</li>
+    <li>각 결과의 조각을 근거로 답을 만든다</li>
+  </ol>
+
+  <div id="p4-need" class="need hidden">먼저 ③ 에서 적재해 주세요.</div>
+
+  <div class="row">
+    <input type="text" id="query" placeholder="질문을 입력하세요" autocomplete="off">
+    <label>K <input type="number" id="k" value="5" min="1" max="20"></label>
+    <span class="sep"></span>
+    <label class="toggle"><input type="checkbox" id="rewrite"> 질의 재작성</label>
+    <label class="toggle"><input type="checkbox" id="rerank"> 재정렬 <span class="hint">(하이브리드 후보 10개 → LLM 재정렬 → 상위 5개)</span></label>
+    <label class="toggle"><input type="checkbox" id="gen"> 답변 생성</label>
+    <button id="btn-search" class="primary">검색</button>
+    <span id="search-msg" class="msg"></span>
+  </div>
+
+  <div class="row tight" id="doc-filter-row">
+    <span class="hint">검색 대상 문서 — 아무것도 안 고르면 전체</span>
+  </div>
+  <div id="doc-filter" class="doc-filter hidden"></div>
+
+  <div id="rewrite-box" class="rewrite hidden"></div>
+  <div id="query-vec" class="vec hidden"></div>
+
+  <!-- 재정렬 꺼짐: 의미 · BM25 · 하이브리드 3열 비교 -->
+  <div id="search-cols" class="search-cols">
+    <div class="search-col">
+      <h3>의미 검색 <span class="sub">임베딩 유사도로 가까운 조각</span></h3>
+      <div id="answer-semantic" class="answer hidden"></div>
+      <div id="hits-semantic" class="chunks"></div>
+    </div>
+    <div class="search-col">
+      <h3>BM25 검색 <span class="sub">질문과 같은 단어가 많이 겹치는 조각</span></h3>
+      <div id="answer-bm25" class="answer hidden"></div>
+      <div id="hits-bm25" class="chunks"></div>
+    </div>
+    <div class="search-col">
+      <h3>하이브리드 <span class="sub">두 순위를 RRF 로 합친 결과</span></h3>
+      <div id="answer-hybrid" class="answer hidden"></div>
+      <div id="hits-hybrid" class="chunks"></div>
+    </div>
+  </div>
+
+  <!-- 재정렬 켜짐: 하이브리드 후보 → LLM 재정렬 2열 -->
+  <div id="rerank-panel" class="search-cols hidden">
+    <div class="search-col">
+      <h3>1차 후보 <span class="sub">하이브리드 상위 10개</span></h3>
+      <div id="rerank-candidates" class="chunks"></div>
+    </div>
+    <div class="search-col">
+      <h3>재정렬 결과 <span class="sub">LLM 이 다시 매긴 상위 5개 · <b id="rerank-latency"></b></span></h3>
+      <div id="answer-rerank" class="answer hidden"></div>
+      <div id="hits-rerank" class="chunks"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

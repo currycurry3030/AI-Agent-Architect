@@ -1,0 +1,32 @@
+{
+  "doc-search": {
+    "label": "자료 조사 서버",
+    "detail": "내 PC 에서 파이썬으로 돕니다. 인터넷을 쓰지 않습니다.",
+    "spec": {
+      "command": "python",
+      "args": ["mcp-servers/doc-search/server.py"]
+    }
+  },
+  "mslearn": {
+    "label": "Microsoft Learn 문서 서버",
+    "detail": "인터넷 저편에 있습니다. 마이크로소프트가 운영합니다.",
+    "spec": {
+      "url": "https://learn.microsoft.com/api/mcp"
+    }
+  },
+  "tavily": {
+    "label": "Tavily 웹 검색",
+    "detail": "인터넷 저편에 있습니다. Tavily 가 운영합니다. 열쇠가 필요합니다 (.env 의 TAVILY_API_KEY).",
+    "spec": {
+      "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=${TAVILY_API_KEY}"
+    }
+  },
+  "open-meteo": {
+    "label": "Open-Meteo 날씨",
+    "detail": "내 PC 에서 파이썬으로 돕니다. Open-Meteo 공개 API 를 쓰며 열쇠가 필요 없습니다.",
+    "spec": {
+      "command": "python",
+      "args": ["mcp-servers/open-meteo/server.py"]
+    }
+  }
+}
